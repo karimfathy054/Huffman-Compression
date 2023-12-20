@@ -3,108 +3,91 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HuffmanCompressor {
-    String filePath;
-    private HashMap<ArrayList<Byte>,String> dictionary;
-    private int chunkSize = 1;
 
+    private String filepath;
+    private int chunkSize =1;
 
-
-    public HuffmanCompressor(String filePath, int chunkSize) {
-        this.filePath = filePath;
-        this.chunkSize = chunkSize;
+    public HuffmanCompressor(String filepath, int chunkSize) {
+        this.filepath = filepath;
+        this.chunkSize = Math.max(chunkSize, 1);
     }
 
     //read file
-        //get frequency count
-        //generate huffman codes
-        //embed the hashtable
-    void prepareDictionary(DataOutputStream out){
-        int dataStart = 0;
-        FrequencyCounter fc = new FrequencyCounter(filePath,chunkSize);
-        HashMap<ArrayList<Byte>,Long> frequencies = null;
-        try {
-            frequencies = fc.countFrequency();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    //collect frequencies
+    //generate dictionary
+    //embed dictionary
+    //read file
+    //convert each chunk to equivalent code
+    void compress() throws IOException {
+        long then = System.currentTimeMillis();
+        FrequencyCounter fc = new FrequencyCounter(filepath,chunkSize);
+        HashMap<ArrayList<Byte>,Long> frequencies = fc.countFrequency();
         HuffmanCodeGenerator generator = new HuffmanCodeGenerator(frequencies);
-        this.dictionary = generator.getDictionary();
+        HashMap<ArrayList<Byte>,Pair> dictionary = generator.getDictionary();
         DictionaryEmbedder embedder = new DictionaryEmbedder(dictionary);
-        try {
-            embedder.embedDictionary(out);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    //read file
-        //change each chunk to corresponding value
-        //write value in file
-    void writeCompressedFile(DataOutputStream out) throws IOException {
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(filePath));
-        byte[] buffer = in.readAllBytes();
-        in.close();
-        ArrayList<String> codes = new ArrayList<>();
-        for (int i = 0; i < buffer.length;) {
-            ArrayList<Byte> chunk = new ArrayList<>();
-            for (int j = 0; j < chunkSize; j++) {
-                if(i < buffer.length){
-                    chunk.add(buffer[i++]);
-                }
-            }
-            String code = dictionary.get(chunk);
-            codes.add(code);
-        }
-        int writingBuffer =0;
+        FileNameManipulator fm = new FileNameManipulator();
+        String compressedFilePath = fm.compressedFilePath(filepath,chunkSize);
+        DataOutputStream out = new DataOutputStream(new FileOutputStream(compressedFilePath));
+        embedder.embedDictionary(out);
+        long expectedBitCount = getExpectedNumberOfBits(frequencies,dictionary);
+        out.writeLong(expectedBitCount);
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(filepath));
+        int writingBuffer = 0;
         int limit = 8;
-        for (String code : codes) {
-            for (char c : code.toCharArray()){
+        while(in.available()>0){
+            byte[] buffer = in.readNBytes(chunkSize);
+            ArrayList<Byte> chunk = new ArrayList<>();
+            for (byte b : buffer) {
+                chunk.add(b);
+            }
+            Pair pair = dictionary.get(chunk);
+            for (int i= pair.len-1 ; i>=0 ; i--) {
                 if(limit == 0){
                     out.write(writingBuffer);
-                    writingBuffer =0;
+                    writingBuffer = 0;
                     limit = 8;
                 }
-                if(c == '1'){
+                if((pair.code & (1L << i))>0){
                     writingBuffer = writingBuffer<<1;
                     writingBuffer |= 1;
                     limit--;
                 }
-                else if(c == '0'){
+                else {
                     writingBuffer = writingBuffer<<1;
                     limit--;
                 }
             }
         }
-        if(limit < 8){//
-            while(limit != 0){
+        if(limit < 8){
+            while (limit != 0){
                 writingBuffer = writingBuffer<<1;
                 limit--;
             }
             out.write(writingBuffer);
-            writingBuffer =0;
-            limit = 8;
         }
+        long now = System.currentTimeMillis();
+        in.close();
         out.close();
+        File original = new File(filepath);
+        File compressed = new File(compressedFilePath);
+        double compressionRatio = (compressed.length()* 1.0 / original.length()) * 100;
+        System.out.println("compression ratio = " + compressionRatio);
+        System.out.println("Compression time : "+(now-then)+" ms");
     }
-    void compress() throws FileNotFoundException {
-        DataOutputStream out = new DataOutputStream(new FileOutputStream(filePath+".hc"));
-        prepareDictionary(out);
-        try {
-            writeCompressedFile(out);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private long getExpectedNumberOfBits(HashMap<ArrayList<Byte>,Long> frequencies,HashMap<ArrayList<Byte>,Pair> dictionary){
+        long bits = 0;
+        for (ArrayList<Byte> chunk : frequencies.keySet()) {
+            bits+= frequencies.get(chunk)*dictionary.get(chunk).len;
         }
+        return bits;
     }
 
-    public static void main(String[] args) {
-        HuffmanCompressor comp = new HuffmanCompressor("src/abc",1);
-        try {
-            comp.compress();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-
+//    public static void main(String[] args) {
+//        HuffmanCompressor compressor = new HuffmanCompressor("src/toCompress.txt",1);
+//        try {
+//            compressor.compress();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

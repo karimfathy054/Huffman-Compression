@@ -9,8 +9,9 @@ import java.util.PriorityQueue;
 
 public class HuffmanCodeGenerator {
 
+
     private HashMap<ArrayList<Byte>,Long> frequencyMap ;
-    private HashMap<ArrayList<Byte>,String> dictionary;
+    private HashMap<ArrayList<Byte>,Pair> dictionary;
 
     public HuffmanCodeGenerator(HashMap<ArrayList<Byte>, Long> frequencyMap) {
         this.frequencyMap = frequencyMap;
@@ -44,63 +45,30 @@ public class HuffmanCodeGenerator {
         return characters.poll();
     }
 
-    private void getCode(Node root, String code){
+    private void getCode(Node root, long code,int bitLen){
+//        System.out.println(root);
         if(root.isLeaf){
-            this.dictionary.put(root.chunk,code);
+            this.dictionary.put(root.chunk,new Pair(code,bitLen));
             return;
         }
-        getCode(root.left,code+"0");
-        getCode(root.right,code+"1");
+        getCode(root.left,(code<<1),bitLen+1);
+        getCode(root.right,((code<<1)|1),bitLen+1);
     }
 
-    HashMap<ArrayList<Byte>,String> getDictionary(){
+    HashMap<ArrayList<Byte>,Pair> getDictionary(){
         PriorityQueue<Node> queue = initialize();
         Node root = codeTree(queue);
-        getCode(root,"");
+        getCode(root,0,0);
         return this.dictionary;
     }
 
-//    public static void main(String[] args) {
-//        FrequencyCounter fc = new FrequencyCounter("src/abc",1);
-//        try {
-//            HashMap<ArrayList<Byte>,Long> freqs = fc.countFrequency();
-//            System.out.println("frequencies = "+freqs);
-//            HuffmanCodeGenerator gen = new HuffmanCodeGenerator(freqs);
-//            HashMap<ArrayList<Byte>,String> codes = gen.getDictionary();
-//            System.out.println("codes = "+codes);
-//            DictionaryEmbedder embedder = new DictionaryEmbedder(codes);
-//            embedder.embedDictionary();
-//            int x = embedder.extractDictionary();
-//            System.out.println("original");
-//            System.out.println(embedder.dictionary);
-//            System.out.println("extracted");
-//            System.out.println(embedder.extracted);
-//            DataInputStream input = new DataInputStream(new FileInputStream("src/dictionary.dic"));
-//            byte[] buffer = new byte[1024];
-//            int z = input.skipBytes(x);
-//            System.out.println(x);
-//            System.out.println(z);
-//            input.read(buffer);
-//
-//            for (int i = 0; i < buffer.length;) {
-//                byte[] k = new byte[2];
-//                for (int j = 0; j < 2; j++) {
-//                    k[j]=buffer[i++];
-//                }
-//            }
-//
-//            for (byte b : buffer) {
-//
-//                System.out.println((char)b);
-//            }
-//
-////            String s = String.valueOf(buffer);
-////            System.out.println(s);
-////            System.out.println(buffer);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    public static void main(String[] args) throws IOException {
+        FrequencyCounter fc = new FrequencyCounter("src/toCompress.txt",1);
+        HashMap<ArrayList<Byte>,Long> freqs = fc.countFrequency();
+        HuffmanCodeGenerator gem = new HuffmanCodeGenerator(freqs);
+        gem.getDictionary();
+        System.out.println(gem.dictionary);
+    }
 
 
 
