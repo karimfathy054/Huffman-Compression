@@ -10,10 +10,10 @@ import java.util.PriorityQueue;
 public class HuffmanCodeGenerator {
 
 
-    private HashMap<ArrayList<Byte>,Long> frequencyMap ;
-    private HashMap<ArrayList<Byte>,Pair> dictionary;
+    private HashMap<Chunk,Long> frequencyMap ;
+    private HashMap<Chunk,Pair> dictionary;
 
-    public HuffmanCodeGenerator(HashMap<ArrayList<Byte>, Long> frequencyMap) {
+    public HuffmanCodeGenerator(HashMap<Chunk, Long> frequencyMap) {
         this.frequencyMap = frequencyMap;
         this.dictionary = new HashMap<>();
     }
@@ -26,7 +26,7 @@ public class HuffmanCodeGenerator {
                 return (int)(o1.frequency- o2.frequency);
             }
         });
-        for (ArrayList<Byte> chunk :
+        for (Chunk chunk :
                 frequencyMap.keySet()) {
             Node leaf = new Node(frequencyMap.get(chunk), chunk, null, null, true);
             queue.add(leaf);
@@ -55,20 +55,20 @@ public class HuffmanCodeGenerator {
         getCode(root.right,((code<<1)|1),bitLen+1);
     }
 
-    HashMap<ArrayList<Byte>,Pair> getDictionary(){
+    HashMap<Chunk,Pair> getDictionary(){
         PriorityQueue<Node> queue = initialize();
         Node root = codeTree(queue);
         getCode(root,0,0);
         return this.dictionary;
     }
 
-    public static void main(String[] args) throws IOException {
-        FrequencyCounter fc = new FrequencyCounter("src/toCompress.txt",1);
-        HashMap<ArrayList<Byte>,Long> freqs = fc.countFrequency();
-        HuffmanCodeGenerator gem = new HuffmanCodeGenerator(freqs);
-        gem.getDictionary();
-        System.out.println(gem.dictionary);
-    }
+//    public static void main(String[] args) throws IOException {
+//        FrequencyCounter fc = new FrequencyCounter("src/abc",1);
+//        HashMap<Chunk,Long> freqs = fc.countFrequency();
+//        HuffmanCodeGenerator gem = new HuffmanCodeGenerator(freqs);
+//        gem.getDictionary();
+//        System.out.println(gem.dictionary);
+//    }
 
 
 

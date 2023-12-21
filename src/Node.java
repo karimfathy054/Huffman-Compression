@@ -2,12 +2,12 @@ import java.util.ArrayList;
 
 class Node{
     Long frequency;
-    ArrayList<Byte> chunk;
+    Chunk chunk;
     Node left;
     Node right;
     Boolean isLeaf;
 
-    public Node(Long frequency, ArrayList<Byte> chunk, Node left, Node right, Boolean isLeaf) {
+    public Node(Long frequency, Chunk chunk, Node left, Node right, Boolean isLeaf) {
         this.frequency = frequency;
         this.chunk = chunk;
         this.left = left;
