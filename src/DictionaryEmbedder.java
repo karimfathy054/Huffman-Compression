@@ -1,17 +1,16 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DictionaryEmbedder {
-    //not including MAGIC_NUMBER can save 8 bytes but it acts as a good indication of working code
+    //not including MAGIC_NUMBER can save 8 bytes, but it acts as a good indication of working code
     private static final int MAGIC_NUMBER = 0xABCDEF; //to mark the start and the end of the dictionary
-    private HashMap<Chunk, Pair> dictionary;
-    private HashMap<Pair,Chunk> extracted;
+    private HashMap<Chunk, Data> dictionary;
+    private HashMap<Data,Chunk> extracted;
 
     public DictionaryEmbedder() {
     }
 
-    public DictionaryEmbedder(HashMap<Chunk, Pair> dictionary) {
+    public DictionaryEmbedder(HashMap<Chunk, Data> dictionary) {
         this.dictionary = dictionary;
     }
 
@@ -24,14 +23,14 @@ public class DictionaryEmbedder {
                     chunk.bytes) {
                 out.writeByte(b);
             }
-            Pair p = dictionary.get(chunk);
+            Data p = dictionary.get(chunk);
             out.writeByte(p.len);
             out.writeLong(p.code);
         }
         out.writeInt(MAGIC_NUMBER);
     }
 
-    HashMap<Pair,Chunk> extractDictionary(DataInputStream in) throws IOException {
+    HashMap<Data,Chunk> extractDictionary(DataInputStream in) throws IOException {
         int magicNumber = in.readInt();
         if(magicNumber != MAGIC_NUMBER){
             throw new RuntimeException("unsupported format");
@@ -44,7 +43,7 @@ public class DictionaryEmbedder {
             Chunk chunk = new Chunk(word);
             int len = in.readByte();
             long code = in.readLong();
-            Pair p = new Pair(code,len);
+            Data p = new Data(code,len);
             extracted.put(p,chunk);
         }
         magicNumber = in.readInt();

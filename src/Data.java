@@ -1,11 +1,22 @@
 import java.io.Serializable;
 import java.util.Objects;
 
-public class Pair implements Serializable {
+public class Data implements Serializable {
+    long freq;
+
+    public Data(long freq) {
+        this.freq = freq;
+    }
+
+    Data increment(){
+        this.freq++;
+        return this;
+    }
+
     long code;
     int len;
 
-    public Pair(long code, int len) {
+    public Data(long code, int len) {
         this.code = code;
         this.len = len;
     }
@@ -13,7 +24,8 @@ public class Pair implements Serializable {
     @Override
     public String toString() {
         return "Pair{" +
-                "code=" + code +
+                "freq=" + freq +
+                ", code=" + code +
                 ", len=" + len +
                 '}';
     }
@@ -22,8 +34,8 @@ public class Pair implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Pair pair = (Pair) o;
-        return code == pair.code && len == pair.len;
+        Data data = (Data) o;
+        return code == data.code && len == data.len;
     }
 
     @Override

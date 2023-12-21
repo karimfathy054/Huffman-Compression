@@ -1,15 +1,14 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HuffmanCompressor {
 
     private String filepath;
-    private int chunkSize =1;
+    private int wordSize =1;
 
-    public HuffmanCompressor(String filepath, int chunkSize) {
+    public HuffmanCompressor(String filepath, int wordSize) {
         this.filepath = filepath;
-        this.chunkSize = Math.max(chunkSize, 1);
+        this.wordSize = Math.max(wordSize, 1);
     }
 
     //read file
@@ -20,31 +19,31 @@ public class HuffmanCompressor {
     //convert each chunk to equivalent code
     void compress() throws IOException {
         long then = System.currentTimeMillis();
-        FrequencyCounter fc = new FrequencyCounter(filepath,chunkSize);
-        HashMap<Chunk,Long> frequencies = fc.countFrequency();
+        FrequencyCounter fc = new FrequencyCounter(filepath, wordSize);
+        HashMap<Chunk, Data> frequencies = fc.countFrequency();
         HuffmanCodeGenerator generator = new HuffmanCodeGenerator(frequencies);
-        HashMap<Chunk,Pair> dictionary = generator.getDictionary();
+        HashMap<Chunk, Data> dictionary = generator.getDictionary();
         DictionaryEmbedder embedder = new DictionaryEmbedder(dictionary);
         FileNameManipulator fm = new FileNameManipulator();
-        String compressedFilePath = fm.compressedFilePath(filepath,chunkSize);
+        String compressedFilePath = fm.compressedFilePath(filepath, wordSize);
         DataOutputStream out = new DataOutputStream(new FileOutputStream(compressedFilePath));
         embedder.embedDictionary(out);
-        long expectedBitCount = getExpectedNumberOfBits(frequencies,dictionary);
+        long expectedBitCount = getExpectedNumberOfBits(dictionary);
         out.writeLong(expectedBitCount);
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(filepath));
         int writingBuffer = 0;
         int limit = 8;
         while(in.available()>0){
-            byte[] buffer = in.readNBytes(chunkSize);
+            byte[] buffer = in.readNBytes(wordSize);
             Chunk chunk = new Chunk(buffer);
-            Pair pair = dictionary.get(chunk);
-            for (int i= pair.len-1 ; i>=0 ; i--) {
+            Data data = dictionary.get(chunk);
+            for (int i = data.len-1; i>=0 ; i--) {
                 if(limit == 0){
                     out.write(writingBuffer);
                     writingBuffer = 0;
                     limit = 8;
                 }
-                if((pair.code & (1L << i))>0){
+                if((data.code & (1L << i))>0){
                     writingBuffer = writingBuffer<<1;
                     writingBuffer |= 1;
                     limit--;
@@ -71,20 +70,20 @@ public class HuffmanCompressor {
         System.out.println("compression ratio = " + compressionRatio);
         System.out.println("Compression time : "+(now-then)+" ms");
     }
-    private long getExpectedNumberOfBits(HashMap<Chunk,Long> frequencies,HashMap<Chunk,Pair> dictionary){
+    private long getExpectedNumberOfBits(HashMap<Chunk, Data> dictionary){
         long bits = 0;
-        for (Chunk chunk : frequencies.keySet()) {
-            bits+= frequencies.get(chunk)*dictionary.get(chunk).len;
+        for (Chunk chunk : dictionary.keySet()) {
+            bits+= dictionary.get(chunk).freq*dictionary.get(chunk).len;
         }
         return bits;
     }
 
-    public static void main(String[] args) {
-        HuffmanCompressor compressor = new HuffmanCompressor("src/toCompress.txt",1);
-        try {
-            compressor.compress();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public static void main(String[] args) {
+//        HuffmanCompressor compressor = new HuffmanCompressor("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\resources\\Alice.txt",1);
+//        try {
+//            compressor.compress();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

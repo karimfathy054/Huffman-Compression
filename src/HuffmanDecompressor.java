@@ -1,5 +1,4 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HuffmanDecompressor {
@@ -23,9 +22,9 @@ public class HuffmanDecompressor {
         FileNameManipulator fm = new FileNameManipulator();
         DataOutputStream out = new DataOutputStream(new FileOutputStream(fm.extractedFilePath(filePath)));
         DictionaryEmbedder embedder = new DictionaryEmbedder();
-        HashMap<Pair,Chunk> dictionary = embedder.extractDictionary(in);
+        HashMap<Data,Chunk> dictionary = embedder.extractDictionary(in);
         long bitCount = in.readLong();
-        Pair sequence  = new Pair(0,0);
+        Data sequence  = new Data(0,0);
         int z;//for debugging;
         while ((bitCount > 0) && (z = in.available()) > 0){
             int b = in.readByte();
@@ -54,12 +53,12 @@ public class HuffmanDecompressor {
         System.out.println("decompressing time : "+(now-then)+" ms");
     }
 
-    public static void main(String[] args) {
-        HuffmanDecompressor decomp = new HuffmanDecompressor("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\src\\20011116.1.toCompress.txt.hc");
-        try {
-            decomp.decompress();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public static void main(String[] args) {
+//        HuffmanDecompressor decomp = new HuffmanDecompressor("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\resources\\20011116.1.Alice.txt.hc");
+//        try {
+//            decomp.decompress();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

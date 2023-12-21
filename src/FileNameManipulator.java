@@ -28,8 +28,8 @@ public class FileNameManipulator {
 
 //    public static void main(String[] args) throws IOException {
 //        FileNameManipulator fm = new FileNameManipulator();
-//        String s = fm.compressedFilePath("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\src\\toCompress.txt",2);
-//        String ds = fm.extractedFilePath("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\src\\20011116.2.toCompress.txt.hc");
+//        String s = fm.compressedFilePath("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\src\\Alice.txt",2);
+//        String ds = fm.extractedFilePath("C:\\Users\\Administrator\\IdeaProjects\\HuffmanCode\\src\\20011116.2.Alice.txt.hc");
 //        System.out.println("ds = " + ds);
 //        System.out.println("s = " + s);
 //    }

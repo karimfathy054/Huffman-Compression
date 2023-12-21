@@ -1,8 +1,3 @@
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.PriorityQueue;
@@ -10,12 +5,10 @@ import java.util.PriorityQueue;
 public class HuffmanCodeGenerator {
 
 
-    private HashMap<Chunk,Long> frequencyMap ;
-    private HashMap<Chunk,Pair> dictionary;
+    private HashMap<Chunk, Data> allMap;
 
-    public HuffmanCodeGenerator(HashMap<Chunk, Long> frequencyMap) {
-        this.frequencyMap = frequencyMap;
-        this.dictionary = new HashMap<>();
+    public HuffmanCodeGenerator(HashMap<Chunk, Data> allMap) {
+        this.allMap = allMap;
     }
 
     //prepare the queue
@@ -27,8 +20,8 @@ public class HuffmanCodeGenerator {
             }
         });
         for (Chunk chunk :
-                frequencyMap.keySet()) {
-            Node leaf = new Node(frequencyMap.get(chunk), chunk, null, null, true);
+                allMap.keySet()) {
+            Node leaf = new Node(allMap.get(chunk).freq, chunk, null, null, true);
             queue.add(leaf);
         }
         return queue;
@@ -48,26 +41,29 @@ public class HuffmanCodeGenerator {
     private void getCode(Node root, long code,int bitLen){
 //        System.out.println(root);
         if(root.isLeaf){
-            this.dictionary.put(root.chunk,new Pair(code,bitLen));
+            Data p = allMap.get(root.chunk);
+            p.code = code;
+            p.len = bitLen;
+//            this.dictionary.put(root.chunk,new Pair(code,bitLen));
             return;
         }
         getCode(root.left,(code<<1),bitLen+1);
         getCode(root.right,((code<<1)|1),bitLen+1);
     }
 
-    HashMap<Chunk,Pair> getDictionary(){
+    HashMap<Chunk, Data> getDictionary(){
         PriorityQueue<Node> queue = initialize();
         Node root = codeTree(queue);
         getCode(root,0,0);
-        return this.dictionary;
+        return this.allMap;
     }
 
 //    public static void main(String[] args) throws IOException {
 //        FrequencyCounter fc = new FrequencyCounter("src/abc",1);
-//        HashMap<Chunk,Long> freqs = fc.countFrequency();
+//        HashMap<Chunk,Pair> freqs = fc.countFrequency();
 //        HuffmanCodeGenerator gem = new HuffmanCodeGenerator(freqs);
 //        gem.getDictionary();
-//        System.out.println(gem.dictionary);
+//        System.out.println(gem.allMap);
 //    }
 
 
